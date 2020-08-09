@@ -9,8 +9,6 @@ Created on Tue Jul  3 20:19:41 2018
 import cv2
 import numpy as np
 from face_detection_haar_cascade import frontal_face
-from preparedata import prepare_training_data
-
 
 
 def draw_rectangle(img, rect):
@@ -20,7 +18,6 @@ def draw_rectangle(img, rect):
 def draw_text(img, text, x, y):
     cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
  
-
 def predict(test_img):
     img = test_img.copy()
     #detect face from the image
@@ -51,26 +48,22 @@ def predict(test_img):
     
 
 
-if __name__=="__main__":
-    
-    subjects=[".","jatin","ankit","sahil"]
-    
-    faces,labels=prepare_training_data("dataset")
+if __name__== "__main__" :
     
     face_classifier=cv2.CascadeClassifier("cascades/lbpcascade_frontalface.xml")
-    face_recognizer = cv2.face.LBPHFaceRecognizer_create() #create our LBPH face recognizer 
-    face_recognizer.train(faces, np.array(labels)) #train the recognizer
-    
-    
+    subjects=["Tom Cruise", "Will Smith"]
+    face_recognizer = cv2.face.LBPHFaceRecognizer_create()
+    face_recognizer.load('train.yml')
     cam = cv2.VideoCapture(0)
     cv2.namedWindow("test")
     img_counter = 0
-    
+
     while True:
         ret, frame = cam.read()
         if ret:
             predicted_img = predict(frame)
             cv2.imshow("test", predicted_img)
+            
             k = cv2.waitKey(1)
         
             if k%256 == 27:
@@ -80,7 +73,6 @@ if __name__=="__main__":
     print("Prediction complete")
     cam.release()
     cv2.destroyAllWindows()
-
 
 
 
