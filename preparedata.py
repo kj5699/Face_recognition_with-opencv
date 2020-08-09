@@ -8,61 +8,45 @@ import cv2
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from face_detection_haar_cascade import frontal_face
 
-import face_dect
+face_classifier=cv2.CascadeClassifier("cascades/lbpcascade_frontalface.xml")
 
 
 def prepare_training_data(data_folder_path):
-#get the directories (one directory for each subject) in data folder
     dirs = os.listdir(data_folder_path)
- #list to hold all subject faces
-    faces = []
-#list to hold labels for all subjects
-    labels = []
- #let's go through each directory and read images within it
-    for dir_name in dirs:
- #our subject directories start with letter 's' so
-#ignore any non-relevant directories if any
+    faces = []  #list to hold all subject faces
+    labels = [] #list to hold labels for all subjects
+ 
+    for dir_name in dirs: 
         if not dir_name.startswith("s"):
-            continue;
-#extract label number of subject from dir_name
-#format of dir name = slabel
-#, so removing letter 's' from dir_name will give us label
-        label = int(dir_name.replace("s", ""))
- #build path of directory containing images for current subject subject
-#sample subject_dir_path = "training-data/s1"
-        subject_dir_path = data_folder_path + "/" + dir_name
- #get the images names that are inside the given subject directory
-        subject_images_names = os.listdir(subject_dir_path)
+            continue; 
+        label = int(dir_name.replace("s", "")) #removing letter 's' from dir_name will give us label
+
+        subject_dir_path = data_folder_path + "/" + dir_name 
+        subject_images_names = os.listdir(subject_dir_path) #get the images names that are inside the given subject directory
  
-#------STEP-3--------
-#go through each image name, read image, 
-#detect face and add face to list of faces
+        #------STEP-3--------
+        #go through each image name, read image, 
+        #detect face and add face to list of faces
         for image_name in subject_images_names:
- 
-#ignore system files like .DS_Store
+
             if image_name.startswith("."):
                 continue;
- 
-#build image path
-#sample image path = training-data/s1/1.pgm
-            image_path = subject_dir_path + "/" + image_name
- 
-#read image
+            image_path = subject_dir_path + "/" + image_name #sample image path = training-data/s1/1.pgm
             image = cv2.imread(image_path)
- 
-#display an image window to show the image 
             cv2.imshow("Training on image...", image)
             cv2.waitKey(100)
- #detect face
-            face, rect = face_dect.detect_face(image)
-#for the purpose of this tutorial
-#we will ignore faces that are not detected
-            #if face is not None:
-#add face to list of faces
-            faces.append(face)
-#add label for this face
-            labels.append(label)
+            
+            # detect face
+            img,boxes=frontal_face(face_classifier,image,1.2)
+            if not len(boxes)!=0:
+                for box in boxes:
+                    x,y,w,h=box
+                    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                    face = gray[y-10:y+w+10, x-10:x+h+10]
+                    faces.append(face)
+                    labels.append(label)
  
             cv2.destroyAllWindows()
     cv2.waitKey(1)
