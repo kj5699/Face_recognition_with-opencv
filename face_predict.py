@@ -8,7 +8,7 @@ Created on Tue Jul  3 20:19:41 2018
 
 import cv2
 import numpy as np
-from face_detection_haar_cascade import frontal_face
+from face_detection_haar_cascade import frontal_face, face_detect_Facenet
 
 
 def draw_rectangle(img, rect):
@@ -22,9 +22,9 @@ def predict(test_img):
     img = test_img.copy()
     #detect face from the image
     #face, rect = face_dect.detect_face(img)
-    img,boxes=frontal_face(face_classifier,img)
-    
-    if len(boxes)!=0 :
+    #img,boxes=frontal_face(face_classifier,img)
+    img,boxes=face_detect_Facenet(face_classifier,img)
+    if boxes is None :
         print("no faces found")
         return img
     else:

@@ -34,12 +34,15 @@ def face_detect_Facenet(image):
     # check if gpu is available
     device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mtcnn=MTCNN(keep_all=True,device=device)
-    boxes,_=mtcnn.detect(image)
-    color=(0,255,0)
-    if boxes is not None:
-        for box in boxes:
-            cv2.rectangle(image,(box[0],box[1]),
-                          (box[2],box[3]) , color, 2)
+    predicts,_=mtcnn.detect(image)
+    
+    boxes=[]
+    if predicts is not None:
+        for box in predicts:
+            x1,y1,x2,y2=box
+            x,y,w,h=x1,y1,x2-x1,y2-y1
+            cv2.rectangle(image,(x,y),(x+w,y+h),(0,255,255),2)
+            boxes.append((x,y,w,h))
     return image,boxes
             
 
