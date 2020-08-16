@@ -9,9 +9,14 @@ Created on Tue Jul  3 00:15:09 2018
 
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+
+from PIL import Image
+from facenet_pytorch import MTCNN
+import torch
+
 face_cascade=cv2.CascadeClassifier("cascades/haarcascade_frontalface_default.xml")
 lpb_face_cascade=cv2.CascadeClassifier("cascades/lbpcascade_frontalface.xml")
+
 
 def frontal_face(classifier,image,scaling_factor):
     image_gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -25,6 +30,18 @@ def frontal_face(classifier,image,scaling_factor):
     
     return image,boxes
     
+def face_detect_Facenet(image):
+    # check if gpu is available
+    device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    mtcnn=MTCNN(keep_all=True,device=device)
+    boxes,_=mtcnn.detect(image)
+    color=(0,255,0)
+    if boxes is not None:
+        for box in boxes:
+            cv2.rectangle(image,(box[0],box[1]),
+                          (box[2],box[3]) , color, 2)
+    return image,boxes
+            
 
 
 if __name__=="__main__":
@@ -33,7 +50,8 @@ if __name__=="__main__":
     while True:
         ret,image=cap.read()
         if ret:
-            frame,boxes=frontal_face(lpb_face_cascade,image,1.2)
+            #frame,boxes=frontal_face(lpb_face_cascade,image,1.2)
+            frame,boxes=face_detect_Facenet(image)
             cv2.imshow("frame",frame)
             k = cv2.waitKey(1)
         
