@@ -7,8 +7,8 @@ Created on Thu Jul  5 11:38:05 2018
 import cv2
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-from face_detection_haar_cascade import frontal_face
+
+from face_detection import frontal_face, face_detect_Facenet
 
 face_classifier=cv2.CascadeClassifier("cascades/lbpcascade_frontalface.xml")
 
@@ -39,14 +39,15 @@ def prepare_training_data(data_folder_path):
             cv2.waitKey(100)
             
             # detect face
-            img,boxes=frontal_face(face_classifier,image,1.2)
-            if not len(boxes)!=0:
+            #img,boxes=frontal_face(face_classifier,image,1.2)
+            img,boxes=face_detect_Facenet(image)
+            if len(boxes)!=0:
                 for box in boxes:
                     x,y,w,h=box
                     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                    face = gray[y-10:y+w+10, x-10:x+h+10]
-                    faces.append(face)
-                    labels.append(label)
+                    face = gray[int(y)-10:int(y+w)+10, int(x)-10:int(x+h)+10]
+                    faces.append(np.array(face,dtype='uint8'))
+                    labels.append(int(label))
  
             cv2.destroyAllWindows()
     cv2.waitKey(1)
@@ -54,9 +55,11 @@ def prepare_training_data(data_folder_path):
  
     return faces, labels
 
+"""
 print("Preparing data...")
 faces, labels = prepare_training_data("dataset")
 print("Data prepared")
 #print total faces and labels
 print("Total faces: ", len(faces))
 print("Total labels: ", len(labels))
+"""

@@ -8,7 +8,7 @@ Created on Tue Jul  3 20:19:41 2018
 
 import cv2
 import numpy as np
-from face_detection_haar_cascade import frontal_face, face_detect_Facenet
+from face_detection import frontal_face, face_detect_Facenet
 
 
 def draw_rectangle(img, rect):
@@ -18,13 +18,13 @@ def draw_rectangle(img, rect):
 def draw_text(img, text, x, y):
     cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.5, (0, 255, 0), 2)
  
-def predict(test_img):
+def predict(test_img,face_recognizer):
     img = test_img.copy()
     #detect face from the image
-    #face, rect = face_dect.detect_face(img)
-    #img,boxes=frontal_face(face_classifier,img)
-    img,boxes=face_detect_Facenet(face_classifier,img)
-    if boxes is None :
+    
+    #img,boxes=frontal_face(face_classifier,img,1.2)
+    img,boxes=face_detect_Facenet(img)
+    if len(boxes)!=0 :
         print("no faces found")
         return img
     else:
@@ -53,7 +53,7 @@ if __name__== "__main__" :
     face_classifier=cv2.CascadeClassifier("cascades/lbpcascade_frontalface.xml")
     subjects=["Tom Cruise", "Will Smith"]
     face_recognizer = cv2.face.LBPHFaceRecognizer_create()
-    face_recognizer.load('train.yml')
+    face_recognizer.read('train.yml')
     cam = cv2.VideoCapture(0)
     cv2.namedWindow("test")
     img_counter = 0
