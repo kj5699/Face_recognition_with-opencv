@@ -8,16 +8,28 @@ import cv2
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.svm import SVC
+import argparse
+import pickle
 
-from preparedata import prepare_training_data
+
 
 
 if __name__== "__main__" :
+    
+    data =pickle.loads(open("output/embeddings.pickle","rb").read())
+    le=LabelEncoder()
+    labels=le.fit_transform(data["names"])
 
-    faces,labels=prepare_training_data("dataset")
-    for face in faces:
-        print(face.shape)
-    labels=np.array(labels).reshape(len(labels),1)
-    face_recognizer = cv2.face.LBPHFaceRecognizer_create() #create our LBPH face recognizer 
-    face_recognizer.train(faces,labels)
-    face_recognizer.write('train.yml')
+    recognizer=SVC(C=1.0,kernel='linear',probability=True)
+    recognizer.fit(data["embeddings"],labels)
+
+    f = open("output/recognizer.pickle", "wb")
+    f.write(pickle.dumps(recognizer))
+    f.close()
+
+    f = open("output/le.pickle", "wb")
+    f.write(pickle.dumps(le))
+    f.close()
+
