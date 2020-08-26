@@ -32,6 +32,7 @@ In this project , we have implemented Face Recognition using opencv and Python.
   
   
   
+### Output Image 
   https://github.com/kj5699/Face_recognition_with-opencv/blob/master/Output2.png
 
   
