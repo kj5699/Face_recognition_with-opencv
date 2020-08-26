@@ -26,7 +26,7 @@ le =pickle.loads(open("output/le.pickle","rb").read())
 
 CONFIDENCE=0.5
 
-frame=cv2.imread("sample_images/image1.jpg")
+frame=cv2.imread("Sample Images/Image2.jpeg")
 
 	
 frame=imutils.resize(frame,width=600)
@@ -36,10 +36,11 @@ imageBlob=cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
 
 detector.setInput(imageBlob)
 detections=detector.forward()
-print(detections.shape)
+print(len(detections))
 
-if len(detections)>0:
-	i=np.argmax(detections[0,0,:,2])
+for i in range(0, detections.shape[2]):
+
+	
 	confidence=detections[0,0,i,2]
 
 	if confidence>CONFIDENCE:
@@ -66,6 +67,7 @@ if len(detections)>0:
 			cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
 	
 cv2.imshow("Frame",frame)
+cv2.imwrite("Output2.png",frame)
 cv2.waitKey(0) 
 
 
