@@ -8,28 +8,60 @@ import pickle
 import time
 import cv2
 import os
-import numpy as np
-import argparse
-import imutils
-import pickle
-import cv2
-import os
+from facenet_pytorch import MTCNN
+import torch
+from PIL import Image,ImageDraw
+from torch.autograd import Variable
+from torchvision import datasets ,transforms, models
 
-model="face_detection_model/res10_300x300_ssd_iter_140000.caffemodel"
+
+
+
+device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
+#Load Model
+model=torch.load('classifymodel.pth')
+model.eval()
+
+
+def predict_image(image):
+    image_tensor=transform(image).float()
+    image_tensor=image_tensor.unsqueeze_(0)
+    input= Variable(image_tensor).to(device)
+    output=model(input)
+    
+    index=output.data.cpu().numpy().argmax()
+    return index
+
+
+
+
+modelpath="face_detection_model/res10_300x300_ssd_iter_140000.caffemodel"
 protopath="face_detection_model/deploy.prototxt"
 embedder="openface_nn4.small2.v1.t7"
 
-detector=cv2.dnn.readNetFromCaffe(protopath, model)
+detector=cv2.dnn.readNetFromCaffe(protopath, modelpath)
 embedder=cv2.dnn.readNetFromTorch("openface_nn4.small2.v1.t7")
 recognier =pickle.loads(open("output/recognizer.pickle","rb").read())
 le =pickle.loads(open("output/le.pickle","rb").read())
+mtcnn=MTCNN(keep_all=True, device=device)
 
 CONFIDENCE=0.5
+classes=['female','male']
 
-frame=cv2.imread("Sample Images/Image2.jpeg")
 
+transform=transforms.Compose([transforms.Resize((80,80)),transforms.ToTensor(),])
+check_transforms=transforms.Compose([transforms.Resize((80,80)),transforms.ToTensor(),
+                                     transforms.ToPILImage(),])
+
+
+
+image=cv2.imread("Sample Images/Image1.jpg")
+image=imutils.resize(image,width=600)
+frame=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 	
-frame=imutils.resize(frame,width=600)
+
 h,w=frame.shape[:2]
 imageBlob=cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
 	1.0,(300,300),(104.0,177.0,123.0),swapRB=False,crop=False)
@@ -37,6 +69,7 @@ imageBlob=cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
 detector.setInput(imageBlob)
 detections=detector.forward()
 print(len(detections))
+
 
 for i in range(0, detections.shape[2]):
 
@@ -48,9 +81,10 @@ for i in range(0, detections.shape[2]):
 		(startX, startY, endX, endY) = box.astype("int")
 		face = frame[startY:endY, startX:endX]
 		(fH, fW) = face.shape[:2]
+		if  fW < 20 or fH < 20:
+			continue
 
-		faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255,
-			(96, 96), (0, 0, 0), swapRB=True, crop=False)
+		faceBlob = cv2.dnn.blobFromImage(face, 1.0 / 255, (96, 96), (0, 0, 0), swapRB=True, crop=False)
 		
 		embedder.setInput(faceBlob)
 		vec = embedder.forward()
@@ -61,13 +95,27 @@ for i in range(0, detections.shape[2]):
 		name=le.classes_[j]
 		text = "{}: {:.2f}%".format(name, proba * 100)
 		y = startY - 10 if startY - 10 > 10 else startY
-		cv2.rectangle(frame, (startX, startY), (endX, endY),
+		cv2.rectangle(image, (startX, startY), (endX, endY),
 			(0, 0, 255), 2)
-		cv2.putText(frame, text, (startX, y),
+		cv2.putText(image, text, (startX, y),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+
+		
+		img = Image.fromarray(face)
+		img=check_transforms(img)
+		index=predict_image(img)
+		label=str(classes[index])
+		cv2.putText(image, label, (startX,  y - 10),
+			cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
+
+
+
+
+
+
 	
-cv2.imshow("Frame",frame)
-cv2.imwrite("Output2.png",frame)
+cv2.imshow("Frame",image)
+cv2.imwrite("Output3.png",image)
 cv2.waitKey(0) 
 
 
