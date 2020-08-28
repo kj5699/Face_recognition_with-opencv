@@ -30,9 +30,11 @@ def predict_image(image):
     return index
 
 def predict_gender(face):
+	face=cv2.cvtColor(face,cv2.COLOR_BGR2RGB)
 	img = Image.fromarray(face)
 	img=check_transforms(img)
 	index=predict_image(img)
+	print(index)
 	label=str(classes[index])
 
 	return label
@@ -75,10 +77,9 @@ if  __name__=="__main__":
 
 
 	# input image
-	image=cv2.imread("Sample Images/Image1.jpg")
+	image=cv2.imread("Sample Images/Image4.jpeg")
 	image=imutils.resize(image,width=600)
-	frame=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-		
+	frame=image.copy()
 	h,w=frame.shape[:2]
 	imageBlob=cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
 		1.0,(300,300),(104.0,177.0,123.0),swapRB=False,crop=False)
